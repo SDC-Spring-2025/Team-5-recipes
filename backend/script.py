@@ -13,15 +13,18 @@ def get_reddit_posts():
 )
     
     for submission in reddit.subreddit("recipes").hot(limit=10):
+        comments = []
         if "MOD PSA" in submission.title:
             continue
         submission.comments.replace_more(limit=None)
         for comment in submission.comments.list():
-            row = {
-                "title": submission.title,
-                "comments": comment.body
-            }            
-            posts.append(row)
+            comments.append(comment.body)
+        row = {
+            "title": submission.title,
+            "comments": comments
+            }         
+        posts.append(row)
+
     return posts
 
 print(get_reddit_posts())
