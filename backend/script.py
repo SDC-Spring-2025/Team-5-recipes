@@ -24,7 +24,7 @@ def store_in_db():
 
 '''
 all 1000 posts in a list [] 
-{'title': samgaetang, 'url': 'link', 'body': 'ingredients and methods'}
+{'title': samgyetang, 'url': 'link', 'body': 'ingredients and methods'}
 '''
 
 
