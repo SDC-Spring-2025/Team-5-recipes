@@ -5,6 +5,7 @@ import praw
 
 
 def get_reddit_posts():
+    posts = []
     reddit = praw.Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID"),
     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
@@ -12,10 +13,23 @@ def get_reddit_posts():
 )
     
     for submission in reddit.subreddit("recipes").hot(limit=10):
-        print(submission.title)
+        if "MOD PSA" in submission.title:
+            continue
+        submission.comments.replace_more(limit=None)
+        for comment in submission.comments.list():
+            row = {
+                "title": submission.title,
+                "comments": comment.body
+            }            
+            posts.append(row)
+    return posts
 
-get_reddit_posts()
+print(get_reddit_posts())
 
+
+
+def parse_posts():
+    return 
 
 def store_in_db():
     client = MongoClient(os.getenv("DATABASE_URL"))
@@ -24,7 +38,7 @@ def store_in_db():
 
 '''
 all 1000 posts in a list [] 
-{'title': samgaetang, 'url': 'link', 'body': 'ingredients and methods'}
+{'title': samgaetang, 'body': 'ingredients and methods'}
 '''
 
 
