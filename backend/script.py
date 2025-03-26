@@ -1,24 +1,23 @@
 from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 import os
 import praw
 
-
-
 def get_reddit_posts():
     posts = []
+    filtered_posts = []
     reddit = praw.Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID"),
     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
     user_agent="test",
     )
     
-    for submission in reddit.subreddit("recipes").hot(limit=10):
+    for submission in reddit.subreddit("recipes").new(limit=1000):
         comments = []
         if "MOD PSA" in submission.title:
             continue
-        submission.comments.replace_more(limit=None)
-        for comment in submission.comments.list():
-            
+        submission.comments.replace_more(limit=0)
+        for comment in submission.comments:
             comments.append(comment.body)
         row = {
             "title": submission.title,
@@ -26,37 +25,30 @@ def get_reddit_posts():
             }         
         posts.append(row)
 
-    i = 0
-    while i < len(posts):
-        post = posts[i]
+    print(f"size of posts list: {len(posts)}" )
+
+    for post in posts:
+        filtered_comments = [comment for comment in post["comments"] if "ingredients" in comment.lower()]
         
-        post["comments"] = [comment for comment in post["comments"] if "ingredients" in comment.lower()]
+        if filtered_comments:
+            post["comments"] = filtered_comments
+            filtered_posts.append(post) 
 
-        if not post["comments"]:
-            del posts[i]
-        else:
-            i += 1
+    print(f"size of filtered posts list: {len(filtered_posts)}" )
 
-    return posts
-
-
-print(get_reddit_posts())
-
-
-
-def parse_posts():
-    return 
+    return filtered_posts
 
 def store_in_db():
-    client = MongoClient(os.getenv("DATABASE_URL"))
+    try:
+        client = MongoClient(os.getenv("DATABASE_URL"))
+        db = client["recipes_db"]
+        collection = db["recipes"]
+        posts = get_reddit_posts()
+        collection.insert_many(posts)
+    except PyMongoError:
+        print("Database error occured {e}")
 
-    
-
-'''
-all 1000 posts in a list [] 
-{'title': samgaetang, 'body': 'ingredients and methods'}
-'''
-
+store_in_db()
 
 
 
