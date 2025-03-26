@@ -9,3 +9,5 @@ requests==2.32.3
 update-checker==0.18.0
 urllib3==2.3.0
 websocket-client==1.8.0
+fastapi==0.110.0
+uvicorn==0.29.0
